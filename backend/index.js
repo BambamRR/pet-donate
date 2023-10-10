@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 //Solve CORS
-app.use(cors({ credentials: true, origin: "hhtp//localhost:3000" }));
+app.use(cors({ credentials: true, origin: "hhtp//localhost:5000" }));
 
 //Public folder for imgs
 

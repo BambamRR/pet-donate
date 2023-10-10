@@ -1,11 +1,11 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
+const PRIVATE_KEY = require("../auth");
 
 //token helpers
 const createUserToken = require("../helpers/create-user-token");
-const getToken = require('../helpers/get-token')
-
+const getToken = require("../helpers/get-token");
 
 module.exports = class UserController {
   static async register(req, res) {
@@ -100,35 +100,82 @@ module.exports = class UserController {
       return;
     }
 
-    await createUserToken(user, req, res)
+    await createUserToken(user, req, res);
   }
 
-  static async checkUser (req ,res) {
-    let currentUser
+  static async checkUser(req, res) {
+    let currentUser;
 
-    if(req.headers.authorization){
-        const token = getToken(req)
-        const decoded = jwt.verify(token, '7QxPw!Mr>,O[')
+    if (req.headers.authorization) {
+      const token = getToken(req);
+      const decoded = jwt.verify(token, PRIVATE_KEY);
 
-        currentUser = await User.findById(decoded.id)
+      currentUser = await User.findById(decoded.id);
 
-        currentUser.password = undefined
-    }else{
-        currentUser = null
+      currentUser.password = undefined;
+    } else {
+      currentUser = null;
     }
-    res.status(200).send(currentUser)
+    res.status(200).send(currentUser);
   }
-  static async getUserById (req, res) {
+  static async getUserById(req, res) {
+    const id = req.params.id;
 
-    const id = req.params.id
-
-    const user = await User.findById(id)
+    const user = await User.findById(id);
 
     if (!user) {
-        res.status(422).json({ message: "Usuário não encontrado" });
-        return;
+      res.status(422).json({ message: "Usuário não encontrado" });
+      return;
+    }
+
+    res.status(200).json({ user });
+  }
+
+  static async editUser(req, res) {
+    const id = req.params.id;
+
+    //check if user exists
+    if (!user) {
+      res.status(422).json({ message: "Usuário não encontrado" });
+      return;
+    }
+
+    const { name, email, phone, passowrd, confirmpassword } = req.body;
+
+    let image = "";
+
+    //validations
+    if (!name) {
+      res.status(422).json({ message: "O nome é obrigatório" });
+      return;
+    }
+    if (!email) {
+      res.status(422).json({ message: "O email é obrigatório" });
+      return;
+    }
+
+    const userExists = await User.findOne({ email: email });
+
+    if (user.email == userExists.email)
+      if (!phone) {
+        res.status(422).json({ message: "O telefone é obrigatório" });
       }
 
-      res.status(200).json({ user })
+    if (!password) {
+      res.status(422).json({ message: "A senha é obrigatória" });
+      return;
+    }
+
+    if (!confirmpassword) {
+      res.status(422).json({ message: "A confirmação de senha é obrigatória" });
+      return;
+    }
+
+    if (password !== confirmpassword) {
+      res.status(422).json({ message: "A senha e confirmação devem ser iguais" });
+      return;
+    }
+
+    const user = await User.findById(id);
   }
 };
