@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const getToken = require("./get-token");
-const PRIVATE_KEY = require('../auth')
+require('dotenv').config()
+const { PRIVATE_KEY } = process.env
+
 
 //middleware to validate token
 const checkToken = (req, res, next) => {
